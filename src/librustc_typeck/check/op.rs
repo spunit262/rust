@@ -204,7 +204,14 @@ impl<'a, 'tcx> FnCtxt<'a, 'tcx> {
                             kind: Adjust::Borrow(AutoBorrow::Ref(region, mutbl)),
                             target: method.sig.inputs()[0],
                         };
-                        self.apply_adjustments(lhs_expr, vec![autoref]);
+                        // HACK See below
+                        //self.apply_adjustments(lhs_expr, vec![autoref]);
+                        self.tables
+                            .borrow_mut()
+                            .adjustments_mut()
+                            .entry(lhs_expr.hir_id)
+                            .or_default()
+                            .push(autoref);
                     }
                 }
                 if by_ref_binop {

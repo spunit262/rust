@@ -116,6 +116,23 @@ fn simple<'tcx>(kind: Adjust<'tcx>) -> impl FnOnce(Ty<'tcx>) -> Vec<Adjustment<'
     move |target| vec![Adjustment { kind, target }]
 }
 
+fn try_reborrow(target: Ty<'_>) -> Vec<Adjustment<'_>> {
+    match target.kind {
+        ty::Ref(r, ty, hir::Mutability::Mut) => vec![
+            Adjustment { kind: Adjust::Deref(None), target: ty },
+            Adjustment {
+                kind: Adjust::Borrow(AutoBorrow::Ref(
+                    r,
+                    // FIXME: maybe should use
+                    AutoBorrowMutability::Mut { allow_two_phase_borrow: AllowTwoPhase::No },
+                )),
+                target,
+            },
+        ],
+        _ => vec![],
+    }
+}
+
 fn success<'tcx>(
     adj: Vec<Adjustment<'tcx>>,
     target: Ty<'tcx>,
@@ -243,7 +260,7 @@ impl<'f, 'tcx> Coerce<'f, 'tcx> {
             }
             _ => {
                 // Otherwise, just use unification rules.
-                self.unify_and(a, b, identity)
+                self.unify_and(a, b, try_reborrow)
             }
         }
     }
@@ -272,7 +289,7 @@ impl<'f, 'tcx> Coerce<'f, 'tcx> {
                 coerce_mutbls(mt_a.mutbl, mt_b.mutbl)?;
                 (r_a, mt_a)
             }
-            _ => return self.unify_and(a, b, identity),
+            _ => return self.unify_and(a, b, try_reborrow),
         };
 
         let span = self.cause.span;
