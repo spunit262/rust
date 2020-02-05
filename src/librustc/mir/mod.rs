@@ -1952,6 +1952,11 @@ pub enum Operand<'tcx> {
     /// `Copy` may be converted to `Move` to enable "last-use" optimizations.
     Move(Place<'tcx>),
 
+    /// Reborrow: The value can't not be used until this new value expires.
+    ///
+    /// Currently only used for `&mut T`.
+    Reborrow(Region<'tcx>, Place<'tcx>),
+
     /// Synthesizes a constant value.
     Constant(Box<Constant<'tcx>>),
 }

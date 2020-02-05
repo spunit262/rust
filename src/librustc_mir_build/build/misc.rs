@@ -69,7 +69,16 @@ impl<'a, 'tcx> Builder<'a, 'tcx> {
         let tcx = self.hir.tcx();
         let ty = place.ty(&self.local_decls, tcx).ty;
         if !self.hir.type_is_copy_modulo_regions(ty, DUMMY_SP) {
-            Operand::Move(place)
+            if true || tcx.features().never_move_mut_ref {
+                if let ty::Ref(region, ..) = ty.kind {
+                    debug!("reborrow {:?} for {:?}", place, region);
+                    Operand::Reborrow(region, place)
+                } else {
+                    Operand::Move(place)
+                }
+            } else {
+                Operand::Move(place)
+            }
         } else {
             Operand::Copy(place)
         }

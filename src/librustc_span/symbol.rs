@@ -467,6 +467,7 @@ symbols! {
         needs_panic_runtime,
         negate_unsigned,
         never,
+        never_move_mut_ref,
         never_type,
         never_type_fallback,
         new,
