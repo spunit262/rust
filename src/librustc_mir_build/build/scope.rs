@@ -900,7 +900,7 @@ impl<'a, 'tcx> Builder<'a, 'tcx> {
 
         // look for moves of a local variable, like `MOVE(_X)`
         let locals_moved = operands.iter().flat_map(|operand| match operand {
-            Operand::Copy(_) | Operand::Constant(_) => None,
+            Operand::Copy(_) | Operand::Reborrow(..) | Operand::Constant(_) => None,
             Operand::Move(place) => place.as_local(),
         });
 
@@ -939,7 +939,7 @@ impl<'a, 'tcx> Builder<'a, 'tcx> {
             // If constants and statics, we don't generate StorageLive for this
             // temporary, so don't try to generate StorageDead for it either.
             _ if self.local_scope().is_none() => (),
-            Operand::Copy(place) | Operand::Move(place) => {
+            Operand::Copy(place) | Operand::Move(place) | Operand::Reborrow(_, place) => {
                 if let Some(cond_temp) = place.as_local() {
                     // Manually drop the condition on both branches.
                     let top_scope = self.scopes.scopes.last_mut().unwrap();

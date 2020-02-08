@@ -222,6 +222,14 @@ impl<'cx, 'tcx> InvalidationGenerator<'cx, 'tcx> {
                     LocalMutationIsAllowed::No,
                 );
             }
+            Operand::Reborrow(_, ref place) => {
+                self.access_place(
+                    location,
+                    place,
+                    (Deep, Write(WriteKind::MutableBorrow(BorrowKind::Unique))),
+                    LocalMutationIsAllowed::No,
+                );
+            }
             Operand::Move(ref place) => {
                 self.access_place(
                     location,

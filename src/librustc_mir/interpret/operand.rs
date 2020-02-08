@@ -493,7 +493,9 @@ impl<'mir, 'tcx, M: Machine<'mir, 'tcx>> InterpCx<'mir, 'tcx, M> {
         use rustc::mir::Operand::*;
         let op = match *mir_op {
             // FIXME: do some more logic on `move` to invalidate the old location
-            Copy(ref place) | Move(ref place) => self.eval_place_to_op(place, layout)?,
+            Copy(ref place) | Move(ref place) | Reborrow(_, ref place) => {
+                self.eval_place_to_op(place, layout)?
+            }
 
             Constant(ref constant) => {
                 let val = self.subst_from_frame_and_normalize_erasing_regions(constant.literal);

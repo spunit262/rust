@@ -674,6 +674,14 @@ macro_rules! make_mir_visitor {
                             location
                         );
                     }
+                    Operand::Reborrow(r, place) => {
+                        self.visit_region(r, location);
+                        self.visit_place(
+                            place,
+                            PlaceContext::NonMutatingUse(NonMutatingUseContext::UniqueBorrow),
+                            location
+                        );
+                    }
                     Operand::Constant(constant) => {
                         self.visit_constant(constant, location);
                     }

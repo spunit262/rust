@@ -1968,6 +1968,7 @@ impl<'tcx> Debug for Operand<'tcx> {
             Constant(ref a) => write!(fmt, "{:?}", a),
             Copy(ref place) => write!(fmt, "{:?}", place),
             Move(ref place) => write!(fmt, "move {:?}", place),
+            Reborrow(r, ref place) => write!(fmt, "reborrow {} {:?}", r, place),
         }
     }
 }
@@ -1993,7 +1994,7 @@ impl<'tcx> Operand<'tcx> {
     pub fn to_copy(&self) -> Self {
         match *self {
             Operand::Copy(_) | Operand::Constant(_) => self.clone(),
-            Operand::Move(place) => Operand::Copy(place),
+            Operand::Move(place) | Operand::Reborrow(_, place) => Operand::Copy(place),
         }
     }
 }
@@ -2855,6 +2856,9 @@ impl<'tcx> TypeFoldable<'tcx> for Operand<'tcx> {
         match *self {
             Operand::Copy(ref place) => Operand::Copy(place.fold_with(folder)),
             Operand::Move(ref place) => Operand::Move(place.fold_with(folder)),
+            Operand::Reborrow(region, ref place) => {
+                Operand::Reborrow(region.fold_with(folder), place.fold_with(folder))
+            }
             Operand::Constant(ref c) => Operand::Constant(c.fold_with(folder)),
         }
     }
@@ -2862,6 +2866,9 @@ impl<'tcx> TypeFoldable<'tcx> for Operand<'tcx> {
     fn super_visit_with<V: TypeVisitor<'tcx>>(&self, visitor: &mut V) -> bool {
         match *self {
             Operand::Copy(ref place) | Operand::Move(ref place) => place.visit_with(visitor),
+            Operand::Reborrow(region, ref place) => {
+                region.visit_with(visitor) || place.visit_with(visitor)
+            }
             Operand::Constant(ref c) => c.visit_with(visitor),
         }
     }

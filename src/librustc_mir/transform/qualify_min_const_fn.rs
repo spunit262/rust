@@ -243,7 +243,9 @@ fn check_operand(
     body: &Body<'tcx>,
 ) -> McfResult {
     match operand {
-        Operand::Move(place) | Operand::Copy(place) => check_place(tcx, place, span, def_id, body),
+        Operand::Move(place) | Operand::Copy(place) | Operand::Reborrow(_, place) => {
+            check_place(tcx, place, span, def_id, body)
+        }
         Operand::Constant(c) => match c.check_static_ptr(tcx) {
             Some(_) => Err((span, "cannot access `static` items in const fn".into())),
             None => Ok(()),

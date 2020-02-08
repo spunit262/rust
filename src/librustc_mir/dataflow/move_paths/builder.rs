@@ -413,7 +413,7 @@ impl<'b, 'a, 'tcx> Gatherer<'b, 'a, 'tcx> {
 
     fn gather_operand(&mut self, operand: &Operand<'tcx>) {
         match *operand {
-            Operand::Constant(..) | Operand::Copy(..) => {} // not-a-move
+            Operand::Constant(..) | Operand::Copy(..) | Operand::Reborrow(..) => {} // not-a-move
             Operand::Move(ref place) => {
                 // a move
                 self.gather_move(place);

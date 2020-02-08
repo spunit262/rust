@@ -98,7 +98,8 @@ impl<'tcx> MirPass<'tcx> for CopyPropagation {
                                 if local == dest_local {
                                     let maybe_action = match operand {
                                         Operand::Copy(ref src_place)
-                                        | Operand::Move(ref src_place) => {
+                                        | Operand::Move(ref src_place)
+                                        | Operand::Reborrow(_, ref src_place) => {
                                             Action::local_copy(&body, &def_use_analysis, src_place)
                                         }
                                         Operand::Constant(ref src_constant) => {

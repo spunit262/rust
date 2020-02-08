@@ -89,9 +89,9 @@ pub trait Qualif {
         operand: &Operand<'tcx>,
     ) -> bool {
         match *operand {
-            Operand::Copy(ref place) | Operand::Move(ref place) => {
-                Self::in_place(cx, per_local, place.as_ref())
-            }
+            Operand::Copy(ref place)
+            | Operand::Move(ref place)
+            | Operand::Reborrow(_, ref place) => Self::in_place(cx, per_local, place.as_ref()),
 
             Operand::Constant(ref constant) => {
                 if constant.check_static_ptr(cx.tcx).is_some() {

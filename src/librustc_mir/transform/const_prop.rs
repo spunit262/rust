@@ -512,9 +512,9 @@ impl<'mir, 'tcx> ConstPropagator<'mir, 'tcx> {
     fn eval_operand(&mut self, op: &Operand<'tcx>, source_info: SourceInfo) -> Option<OpTy<'tcx>> {
         match *op {
             Operand::Constant(ref c) => self.eval_constant(c, source_info),
-            Operand::Move(ref place) | Operand::Copy(ref place) => {
-                self.eval_place(place, source_info)
-            }
+            Operand::Move(ref place)
+            | Operand::Copy(ref place)
+            | Operand::Reborrow(_, ref place) => self.eval_place(place, source_info),
         }
     }
 
@@ -901,7 +901,9 @@ impl<'mir, 'tcx> MutVisitor<'tcx> for ConstPropagator<'mir, 'tcx> {
                         // poison all places this operand references so that further code
                         // doesn't use the invalid value
                         match cond {
-                            Operand::Move(ref place) | Operand::Copy(ref place) => {
+                            Operand::Move(ref place)
+                            | Operand::Copy(ref place)
+                            | Operand::Reborrow(_, ref place) => {
                                 self.remove_const(place.local);
                             }
                             Operand::Constant(_) => {}
