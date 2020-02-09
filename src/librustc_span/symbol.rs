@@ -573,6 +573,7 @@ symbols! {
         raw_ref_op,
         Ready,
         reason,
+        reborrow_more,
         recursion_limit,
         reexport_test_harness_main,
         reflect,

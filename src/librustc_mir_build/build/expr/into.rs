@@ -290,7 +290,7 @@ impl<'a, 'tcx> Builder<'a, 'tcx> {
                             .zip(field_types.into_iter())
                             .map(|(n, ty)| match fields_map.get(&n) {
                                 Some(v) => v.clone(),
-                                None => this.consume_by_copy_or_move(
+                                None => this.consume_by_copy_or_move_no_reborrow(
                                     this.hir.tcx().mk_place_field(base.clone(), n, ty),
                                 ),
                             })
@@ -343,7 +343,7 @@ impl<'a, 'tcx> Builder<'a, 'tcx> {
                 debug_assert!(Category::of(&expr.kind) == Some(Category::Place));
 
                 let place = unpack!(block = this.as_place(block, expr));
-                let rvalue = Rvalue::Use(this.consume_by_copy_or_move(place));
+                let rvalue = this.consume_by_copy_or_move(place);
                 this.cfg.push_assign(block, source_info, destination, rvalue);
                 block.unit()
             }
@@ -360,7 +360,7 @@ impl<'a, 'tcx> Builder<'a, 'tcx> {
                 debug_assert!(Category::of(&expr.kind) == Some(Category::Place));
 
                 let place = unpack!(block = this.as_place(block, expr));
-                let rvalue = Rvalue::Use(this.consume_by_copy_or_move(place));
+                let rvalue = this.consume_by_copy_or_move(place);
                 this.cfg.push_assign(block, source_info, destination, rvalue);
                 block.unit()
             }

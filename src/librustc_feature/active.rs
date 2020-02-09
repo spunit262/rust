@@ -544,6 +544,9 @@ declare_features! (
     /// Allows `T: ?const Trait` syntax in bounds.
     (active, const_trait_bound_opt_out, "1.42.0", Some(67794), None),
 
+    /// Reborrow `&mut T` in almost all instances.
+    (active, reborrow_more, "1.42.0", None, None),
+
     // -------------------------------------------------------------------------
     // feature-group-end: actual feature gates
     // -------------------------------------------------------------------------
