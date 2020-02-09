@@ -1119,7 +1119,7 @@ impl<'cx, 'tcx> MirBorrowckCtxt<'cx, 'tcx> {
         flow_state: &Flows<'cx, 'tcx>,
     ) {
         match *rvalue {
-            Rvalue::Ref(_ /*rgn*/, bk, ref place) => {
+            Rvalue::Ref(_ /*rgn*/, bk, ref place) | Rvalue::Reborrow(_, bk, ref place) => {
                 let access_kind = match bk {
                     BorrowKind::Shallow => {
                         (Shallow(Some(ArtificialField::ShallowBorrow)), Read(ReadKind::Borrow(bk)))

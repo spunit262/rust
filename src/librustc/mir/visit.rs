@@ -552,7 +552,7 @@ macro_rules! make_mir_visitor {
                         self.visit_operand(value, location);
                     }
 
-                    Rvalue::Ref(r, bk, path) => {
+                    Rvalue::Ref(r, bk, path) | Rvalue::Reborrow(r, bk, path) => {
                         self.visit_region(r, location);
                         let ctx = match bk {
                             BorrowKind::Shared => PlaceContext::NonMutatingUse(

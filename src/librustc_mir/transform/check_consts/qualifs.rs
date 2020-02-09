@@ -146,6 +146,8 @@ pub trait Qualif {
                 Self::in_operand(cx, per_local, lhs) || Self::in_operand(cx, per_local, rhs)
             }
 
+            Rvalue::Reborrow(_, _, ref place) => Self::in_place(cx, per_local, place.as_ref()),
+
             Rvalue::Ref(_, _, ref place) | Rvalue::AddressOf(_, ref place) => {
                 // Special-case reborrows to be more like a copy of the reference.
                 if let [proj_base @ .., ProjectionElem::Deref] = place.projection.as_ref() {

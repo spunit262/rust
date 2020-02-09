@@ -585,6 +585,8 @@ impl<'tcx> Validator<'_, 'tcx> {
                 self.validate_operand(rhs)
             }
 
+            Rvalue::Reborrow(_, _, place) => self.validate_place(place.as_ref()),
+
             Rvalue::AddressOf(_, place) => {
                 // Raw reborrows can come from reference to pointer coercions,
                 // so are allowed.

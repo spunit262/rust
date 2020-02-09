@@ -142,6 +142,7 @@ fn check_rvalue(
         Rvalue::Len(place)
         | Rvalue::Discriminant(place)
         | Rvalue::Ref(_, _, place)
+        | Rvalue::Reborrow(_, _, place)
         | Rvalue::AddressOf(_, place) => check_place(tcx, place, span, def_id, body),
         Rvalue::Cast(CastKind::Misc, operand, cast_ty) => {
             use rustc::ty::cast::CastTy;

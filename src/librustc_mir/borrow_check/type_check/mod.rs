@@ -2204,8 +2204,8 @@ impl<'a, 'tcx> TypeChecker<'a, 'tcx> {
                 }
             }
 
-            Rvalue::Ref(region, _borrow_kind, borrowed_place) => {
-                self.add_reborrow_constraint(&body, location, region, borrowed_place);
+            Rvalue::Ref(region, _, place) | Rvalue::Reborrow(region, _, place) => {
+                self.add_reborrow_constraint(&body, location, region, place);
             }
 
             Rvalue::BinaryOp(BinOp::Eq, left, right)
@@ -2266,6 +2266,7 @@ impl<'a, 'tcx> TypeChecker<'a, 'tcx> {
             Rvalue::Use(_)
             | Rvalue::Repeat(..)
             | Rvalue::Ref(..)
+            | Rvalue::Reborrow(..)
             | Rvalue::AddressOf(..)
             | Rvalue::Len(..)
             | Rvalue::Cast(..)

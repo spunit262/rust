@@ -325,6 +325,7 @@ impl Visitor<'tcx> for Validator<'_, 'mir, 'tcx> {
 
         match *rvalue {
             Rvalue::Use(_)
+            | Rvalue::Reborrow(..)
             | Rvalue::Repeat(..)
             | Rvalue::UnaryOp(UnOp::Neg, _)
             | Rvalue::UnaryOp(UnOp::Not, _)

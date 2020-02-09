@@ -2169,6 +2169,24 @@ impl<'tcx> Debug for Rvalue<'tcx> {
                 write!(fmt, "&{}{}{:?}", region, kind_str, place)
             }
 
+            Reborrow(region, _, ref place) => {
+                // When printing regions, add trailing space if necessary.
+                let print_region = ty::tls::with(|tcx| {
+                    tcx.sess.verbose() || tcx.sess.opts.debugging_opts.identify_regions
+                });
+                let region = if print_region {
+                    let mut region = region.to_string();
+                    if region.len() > 0 {
+                        region.push_str(", ");
+                    }
+                    region
+                } else {
+                    // Do not even print 'static
+                    String::new()
+                };
+                write!(fmt, "Reborrow({}{:?})", region, place)
+            }
+
             AddressOf(mutability, ref place) => {
                 let kind_str = match mutability {
                     Mutability::Mut => "mut",
@@ -2783,6 +2801,9 @@ impl<'tcx> TypeFoldable<'tcx> for Rvalue<'tcx> {
             Ref(region, bk, ref place) => {
                 Ref(region.fold_with(folder), bk, place.fold_with(folder))
             }
+            Reborrow(region, bk, ref place) => {
+                Reborrow(region.fold_with(folder), bk, place.fold_with(folder))
+            }
             AddressOf(mutability, ref place) => AddressOf(mutability, place.fold_with(folder)),
             Len(ref place) => Len(place.fold_with(folder)),
             Cast(kind, ref op, ty) => Cast(kind, op.fold_with(folder), ty.fold_with(folder)),
@@ -2823,7 +2844,9 @@ impl<'tcx> TypeFoldable<'tcx> for Rvalue<'tcx> {
         match *self {
             Use(ref op) => op.visit_with(visitor),
             Repeat(ref op, _) => op.visit_with(visitor),
-            Ref(region, _, ref place) => region.visit_with(visitor) || place.visit_with(visitor),
+            Ref(region, _, ref place) | Reborrow(region, _, ref place) => {
+                region.visit_with(visitor) || place.visit_with(visitor)
+            }
             AddressOf(_, ref place) => place.visit_with(visitor),
             Len(ref place) => place.visit_with(visitor),
             Cast(_, ref op, ty) => op.visit_with(visitor) || ty.visit_with(visitor),

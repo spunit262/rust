@@ -154,6 +154,7 @@ impl<'tcx> Rvalue<'tcx> {
                 let place_ty = place.ty(local_decls, tcx).ty;
                 tcx.mk_ref(reg, ty::TypeAndMut { ty: place_ty, mutbl: bk.to_mutbl_lossy() })
             }
+            Rvalue::Reborrow(_, _, ref place) => place.ty(local_decls, tcx).ty,
             Rvalue::AddressOf(mutability, ref place) => {
                 let place_ty = place.ty(local_decls, tcx).ty;
                 tcx.mk_ptr(ty::TypeAndMut { ty: place_ty, mutbl: mutability.into() })

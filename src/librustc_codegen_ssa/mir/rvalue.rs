@@ -35,6 +35,11 @@ impl<'a, 'tcx, Bx: BuilderMethods<'a, 'tcx>> FunctionCx<'a, 'tcx, Bx> {
                 cg_operand.val.store(&mut bx, dest);
                 bx
             }
+            mir::Rvalue::Reborrow(_, _, ref place) => {
+                let cg_operand = self.codegen_consume(&mut bx, place.as_ref());
+                cg_operand.val.store(&mut bx, dest);
+                bx
+            }
 
             mir::Rvalue::Cast(mir::CastKind::Pointer(PointerCast::Unsize), ref source, _) => {
                 // The destination necessarily contains a fat pointer, so if
@@ -156,6 +161,12 @@ impl<'a, 'tcx, Bx: BuilderMethods<'a, 'tcx>> FunctionCx<'a, 'tcx, Bx> {
         match *rvalue {
             mir::Rvalue::Use(ref operand) => {
                 let cg_operand = self.codegen_operand(&mut bx, operand);
+                cg_operand.val.store_unsized(&mut bx, indirect_dest);
+                bx
+            }
+
+            mir::Rvalue::Reborrow(_, _, ref place) => {
+                let cg_operand = self.codegen_consume(&mut bx, place.as_ref());
                 cg_operand.val.store_unsized(&mut bx, indirect_dest);
                 bx
             }
@@ -518,6 +529,10 @@ impl<'a, 'tcx, Bx: BuilderMethods<'a, 'tcx>> FunctionCx<'a, 'tcx, Bx> {
                 let operand = self.codegen_operand(&mut bx, operand);
                 (bx, operand)
             }
+            mir::Rvalue::Reborrow(_, _, ref place) => {
+                let operand = self.codegen_consume(&mut bx, place.as_ref());
+                (bx, operand)
+            }
             mir::Rvalue::Repeat(..) | mir::Rvalue::Aggregate(..) => {
                 // According to `rvalue_creates_operand`, only ZST
                 // aggregate rvalues are allowed to be operands.
@@ -737,6 +752,7 @@ impl<'a, 'tcx, Bx: BuilderMethods<'a, 'tcx>> FunctionCx<'a, 'tcx, Bx> {
             mir::Rvalue::UnaryOp(..) |
             mir::Rvalue::Discriminant(..) |
             mir::Rvalue::NullaryOp(..) |
+            mir::Rvalue::Reborrow(..) | // (*)
             mir::Rvalue::Use(..) => // (*)
                 true,
             mir::Rvalue::Repeat(..) |
