@@ -1577,9 +1577,7 @@ impl<'a, 'tcx> Builder<'a, 'tcx> {
                 self.storage_live_binding(block, binding.var_id, binding.span, OutsideGuard);
             self.schedule_drop_for_binding(binding.var_id, binding.span, OutsideGuard);
             let rvalue = match binding.binding_mode {
-                BindingMode::ByValue => {
-                    self.consume_by_copy_or_move(binding.source.clone())
-                }
+                BindingMode::ByValue => self.consume_by_copy_or_move(binding.source.clone()),
                 BindingMode::ByRef(borrow_kind) => {
                     Rvalue::Ref(re_erased, borrow_kind, binding.source)
                 }
