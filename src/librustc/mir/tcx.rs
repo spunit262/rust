@@ -154,7 +154,15 @@ impl<'tcx> Rvalue<'tcx> {
                 let place_ty = place.ty(local_decls, tcx).ty;
                 tcx.mk_ref(reg, ty::TypeAndMut { ty: place_ty, mutbl: bk.to_mutbl_lossy() })
             }
-            Rvalue::Reborrow(_, _, ref place) => place.ty(local_decls, tcx).ty,
+            Rvalue::Reborrow(r_new, _bk, ref place) => {
+                let place_ty = place.ty(local_decls, tcx).ty;
+                match place_ty.kind {
+                    ty::Ref(_r_old, inner_ty, mutbl) => {
+                        tcx.mk_ref(r_new, ty::TypeAndMut { ty: inner_ty, mutbl })
+                    }
+                    _ => bug!("reborrow of non-reference type: {:?}", place_ty),
+                }
+            }
             Rvalue::AddressOf(mutability, ref place) => {
                 let place_ty = place.ty(local_decls, tcx).ty;
                 tcx.mk_ptr(ty::TypeAndMut { ty: place_ty, mutbl: mutability.into() })

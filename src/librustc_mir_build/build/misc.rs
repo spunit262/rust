@@ -70,8 +70,8 @@ impl<'a, 'tcx> Builder<'a, 'tcx> {
         let ty = place.ty(&self.local_decls, tcx).ty;
         if !self.hir.type_is_copy_modulo_regions(ty, DUMMY_SP) {
             if true || tcx.features().reborrow_more {
-                if let ty::Ref(region, ..) = ty.kind {
-                    Rvalue::Reborrow(region, BorrowKind::Unique, place)
+                if let ty::Ref(..) = ty.kind {
+                    Rvalue::Reborrow(tcx.lifetimes.re_erased, BorrowKind::Unique, place)
                 } else {
                     Rvalue::Use(Operand::Move(place))
                 }

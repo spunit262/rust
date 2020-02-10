@@ -2204,7 +2204,22 @@ impl<'a, 'tcx> TypeChecker<'a, 'tcx> {
                 }
             }
 
-            Rvalue::Ref(region, _, place) | Rvalue::Reborrow(region, _, place) => {
+            Rvalue::Ref(region, _, place) => {
+                self.add_reborrow_constraint(&body, location, region, place);
+            }
+
+            Rvalue::Reborrow(region, _, place) => {
+                let place_ty = place.ty(*body, tcx).ty;
+                let rv_ty = rvalue.ty(*body, tcx);
+                self.sub_types(
+                    place_ty,
+                    rv_ty,
+                    location.to_locations(),
+                    ConstraintCategory::Boring,
+                )
+                .unwrap_or_else(|err| {
+                    bug!("Reborrow subtyping failed ({:?}: {:?}): {:?}", place_ty, rv_ty, err)
+                });
                 self.add_reborrow_constraint(&body, location, region, place);
             }
 
