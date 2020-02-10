@@ -278,26 +278,25 @@ impl<'a, 'tcx> Builder<'a, 'tcx> {
 
                 let field_names = this.hir.all_fields(adt_def, variant_index);
 
-                let fields =
-                    if let Some(FruInfo { base, field_types }) = base {
-                        let base = unpack!(block = this.as_place(block, base));
+                let fields = if let Some(FruInfo { base, field_types }) = base {
+                    let base = unpack!(block = this.as_place(block, base));
 
-                        // MIR does not natively support FRU, so for each
-                        // base-supplied field, generate an operand that
-                        // reads it from the base.
-                        field_names
-                            .into_iter()
-                            .zip(field_types.into_iter())
-                            .map(|(n, ty)| match fields_map.get(&n) {
-                                Some(v) => v.clone(),
-                                None => this.consume_by_copy_or_move_no_reborrow(
-                                    this.hir.tcx().mk_place_field(base.clone(), n, ty),
-                                ),
-                            })
-                            .collect()
-                    } else {
-                        field_names.iter().filter_map(|n| fields_map.get(n).cloned()).collect()
-                    };
+                    // MIR does not natively support FRU, so for each
+                    // base-supplied field, generate an operand that
+                    // reads it from the base.
+                    field_names
+                        .into_iter()
+                        .zip(field_types.into_iter())
+                        .map(|(n, ty)| match fields_map.get(&n) {
+                            Some(v) => v.clone(),
+                            None => this.consume_by_copy_or_move_no_reborrow(
+                                this.hir.tcx().mk_place_field(base.clone(), n, ty),
+                            ),
+                        })
+                        .collect()
+                } else {
+                    field_names.iter().filter_map(|n| fields_map.get(n).cloned()).collect()
+                };
 
                 let inferred_ty = expr.ty;
                 let user_ty = user_ty.map(|ty| {
