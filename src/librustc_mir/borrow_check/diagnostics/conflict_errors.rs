@@ -1696,6 +1696,7 @@ impl<'cx, 'tcx> MirBorrowckCtxt<'cx, 'tcx> {
                         // Otherwise, look at other types of assignment.
                         let assigned_from = match rvalue {
                             Rvalue::Ref(_, _, assigned_from) => assigned_from,
+                            Rvalue::Reborrow(_, _, assigned_from) => assigned_from,
                             Rvalue::Use(operand) => match operand {
                                 Operand::Copy(assigned_from) | Operand::Move(assigned_from) => {
                                     assigned_from

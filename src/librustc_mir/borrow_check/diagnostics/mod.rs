@@ -58,10 +58,12 @@ impl<'cx, 'tcx> MirBorrowckCtxt<'cx, 'tcx> {
         let mut target = place.local_or_deref_local();
         for stmt in &self.body[location.block].statements[location.statement_index..] {
             debug!("add_moved_or_invoked_closure_note: stmt={:?} target={:?}", stmt, target);
-            if let StatementKind::Assign(box (into, Rvalue::Use(from))) = &stmt.kind {
+            if let StatementKind::Assign(box (into, from)) = &stmt.kind {
                 debug!("add_fnonce_closure_note: into={:?} from={:?}", into, from);
                 match from {
-                    Operand::Copy(ref place) | Operand::Move(ref place)
+                    Rvalue::Reborrow(_, _, ref place)
+                    | Rvalue::Use(Operand::Copy(ref place))
+                    | Rvalue::Use(Operand::Move(ref place))
                         if target == place.local_or_deref_local() =>
                     {
                         target = into.local_or_deref_local()

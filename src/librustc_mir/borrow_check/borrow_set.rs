@@ -187,28 +187,32 @@ impl<'a, 'tcx> Visitor<'tcx> for GatherBorrows<'a, 'tcx> {
         rvalue: &mir::Rvalue<'tcx>,
         location: mir::Location,
     ) {
-        if let mir::Rvalue::Ref(region, kind, ref borrowed_place) = *rvalue {
-            if borrowed_place.ignore_borrow(self.tcx, self.body, &self.locals_state_at_exit) {
-                debug!("ignoring_borrow of {:?}", borrowed_place);
-                return;
+        match *rvalue {
+            mir::Rvalue::Ref(region, kind, ref borrowed_place)
+            | mir::Rvalue::Reborrow(region, kind, ref borrowed_place) => {
+                if borrowed_place.ignore_borrow(self.tcx, self.body, &self.locals_state_at_exit) {
+                    debug!("ignoring_borrow of {:?}", borrowed_place);
+                    return;
+                }
+
+                let region = region.to_region_vid();
+
+                let borrow = BorrowData {
+                    kind,
+                    region,
+                    reserve_location: location,
+                    activation_location: TwoPhaseActivation::NotTwoPhase,
+                    borrowed_place: *borrowed_place,
+                    assigned_place: *assigned_place,
+                };
+                let idx = self.idx_vec.push(borrow);
+                self.location_map.insert(location, idx);
+
+                self.insert_as_pending_if_two_phase(location, &assigned_place, kind, idx);
+
+                self.local_map.entry(borrowed_place.local).or_default().insert(idx);
             }
-
-            let region = region.to_region_vid();
-
-            let borrow = BorrowData {
-                kind,
-                region,
-                reserve_location: location,
-                activation_location: TwoPhaseActivation::NotTwoPhase,
-                borrowed_place: *borrowed_place,
-                assigned_place: *assigned_place,
-            };
-            let idx = self.idx_vec.push(borrow);
-            self.location_map.insert(location, idx);
-
-            self.insert_as_pending_if_two_phase(location, &assigned_place, kind, idx);
-
-            self.local_map.entry(borrowed_place.local).or_default().insert(idx);
+            _ => {}
         }
 
         self.super_assign(assigned_place, rvalue, location)
@@ -262,15 +266,19 @@ impl<'a, 'tcx> Visitor<'tcx> for GatherBorrows<'a, 'tcx> {
     }
 
     fn visit_rvalue(&mut self, rvalue: &mir::Rvalue<'tcx>, location: mir::Location) {
-        if let mir::Rvalue::Ref(region, kind, ref place) = *rvalue {
-            // double-check that we already registered a BorrowData for this
+        match *rvalue {
+            mir::Rvalue::Ref(region, kind, ref place)
+            | mir::Rvalue::Reborrow(region, kind, ref place) => {
+                // double-check that we already registered a BorrowData for this
 
-            let borrow_index = self.location_map[&location];
-            let borrow_data = &self.idx_vec[borrow_index];
-            assert_eq!(borrow_data.reserve_location, location);
-            assert_eq!(borrow_data.kind, kind);
-            assert_eq!(borrow_data.region, region.to_region_vid());
-            assert_eq!(borrow_data.borrowed_place, *place);
+                let borrow_index = self.location_map[&location];
+                let borrow_data = &self.idx_vec[borrow_index];
+                assert_eq!(borrow_data.reserve_location, location);
+                assert_eq!(borrow_data.kind, kind);
+                assert_eq!(borrow_data.region, region.to_region_vid());
+                assert_eq!(borrow_data.borrowed_place, *place);
+            }
+            _ => {}
         }
 
         return self.super_rvalue(rvalue, location);

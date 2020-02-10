@@ -610,16 +610,15 @@ impl<'cx, 'tcx> MirBorrowckCtxt<'cx, 'tcx> {
                     match rvalue {
                         // If we see a use, we should check whether it is our data, and if so
                         // update the place that we're looking for to that new place.
-                        Rvalue::Use(operand) => match operand {
-                            Operand::Copy(place) | Operand::Move(place) => {
-                                if let Some(from) = place.as_local() {
-                                    if from == target {
-                                        target = into;
-                                    }
+                        Rvalue::Use(Operand::Copy(place))
+                        | Rvalue::Use(Operand::Move(place))
+                        | Rvalue::Reborrow(_, _, place) => {
+                            if let Some(from) = place.as_local() {
+                                if from == target {
+                                    target = into;
                                 }
                             }
-                            _ => {}
-                        },
+                        }
                         // If we see a unsized cast, then if it is our data we should check
                         // whether it is being cast to a trait object.
                         Rvalue::Cast(CastKind::Pointer(PointerCast::Unsize), operand, ty) => {
