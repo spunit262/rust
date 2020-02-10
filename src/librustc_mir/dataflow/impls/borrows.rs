@@ -259,8 +259,7 @@ impl<'a, 'tcx> BitDenotation<'tcx> for Borrows<'a, 'tcx> {
         match stmt.kind {
             mir::StatementKind::Assign(box (ref lhs, ref rhs)) => {
                 match *rhs {
-                    mir::Rvalue::Ref(_, _, ref place)
-                    | mir::Rvalue::Reborrow(_, _, ref place) => {
+                    mir::Rvalue::Ref(_, _, ref place) | mir::Rvalue::Reborrow(_, _, ref place) => {
                         if place.ignore_borrow(
                             self.tcx,
                             self.body,
@@ -268,9 +267,10 @@ impl<'a, 'tcx> BitDenotation<'tcx> for Borrows<'a, 'tcx> {
                         ) {
                             return;
                         }
-                        let index = self.borrow_set.location_map.get(&location).unwrap_or_else(|| {
-                            panic!("could not find BorrowIndex for location {:?}", location);
-                        });
+                        let index =
+                            self.borrow_set.location_map.get(&location).unwrap_or_else(|| {
+                                panic!("could not find BorrowIndex for location {:?}", location);
+                            });
 
                         trans.gen(*index);
                     }

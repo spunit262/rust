@@ -150,7 +150,7 @@ impl<'tcx> MirPass<'tcx> for AddRetag {
                     StatementKind::Assign(box (ref place, ref rvalue)) if needs_retag(place) => {
                         let kind = match rvalue {
                             Rvalue::Ref(_, borrow_kind, _)
-                            | Rvalue:: Reborrow(_, borrow_kind, _)
+                            | Rvalue::Reborrow(_, borrow_kind, _)
                                 if borrow_kind.allows_two_phase_borrow() =>
                             {
                                 RetagKind::TwoPhase
