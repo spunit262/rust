@@ -73,13 +73,13 @@ fn main() {
 //     bb2: {
 //         Retag(_3);
 //         ...
-//         _9 = move _3;
+//         _9 = &mut (*_3);
 //         Retag(_9);
 //         _8 = &mut (*_9);
 //         Retag(_8);
 //         StorageDead(_9);
 //         StorageLive(_10);
-//         _10 = move _8;
+//         _10 = &mut (*_8);
 //         Retag(_10);
 //         ...
 //         _12 = &raw mut (*_10);
