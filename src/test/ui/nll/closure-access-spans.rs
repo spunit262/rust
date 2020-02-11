@@ -40,16 +40,6 @@ fn closure_mut_capture_moved(mut x: String) {
     || x = String::new(); //~ ERROR
 }
 
-fn closure_unique_capture_moved(x: &mut String) {
-    let r = x;
-    || *x = String::new(); //~ ERROR
-}
-
-fn closure_move_capture_moved(x: &mut String) {
-    let r = x;
-    || x; //~ ERROR
-}
-
 fn main() {}
 
 trait Fake { fn use_mut(&mut self) { } fn use_ref(&self) { }  }
