@@ -65,7 +65,25 @@ impl<'a, 'tcx> Builder<'a, 'tcx> {
         temp
     }
 
-    crate fn consume_by_copy_or_move(&self, place: Place<'tcx>) -> Operand<'tcx> {
+    crate fn consume_by_copy_or_move(&self, place: Place<'tcx>) -> Rvalue<'tcx> {
+        let tcx = self.hir.tcx();
+        let ty = place.ty(&self.local_decls, tcx).ty;
+        if !self.hir.type_is_copy_modulo_regions(ty, DUMMY_SP) {
+            if let ty::Ref(..) = ty.kind {
+                Rvalue::Ref(
+                    tcx.lifetimes.re_erased,
+                    BorrowKind::Mut { allow_two_phase_borrow: false },
+                    tcx.mk_place_deref(place),
+                )
+            } else {
+                Rvalue::Use(Operand::Move(place))
+            }
+        } else {
+            Rvalue::Use(Operand::Copy(place))
+        }
+    }
+
+    crate fn consume_by_copy_or_move_no_reborrow(&self, place: Place<'tcx>) -> Operand<'tcx> {
         let tcx = self.hir.tcx();
         let ty = place.ty(&self.local_decls, tcx).ty;
         if !self.hir.type_is_copy_modulo_regions(ty, DUMMY_SP) {
