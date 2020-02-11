@@ -35,11 +35,6 @@ fn foo(test: bool, x: &mut S, y: S, mut z: S) -> S {
     // `x` is still (definitely) initialized (replace above is a reborrow).
     unsafe { rustc_peek(&x); } //~ ERROR rustc_peek: bit not set
 
-    ::std::mem::drop(x);
-
-    // `x` is *definitely* uninitialized here
-    unsafe { rustc_peek(&x); }
-
     // `ret` is now definitely initialized (via `if` above).
     unsafe { rustc_peek(&ret); } //~ ERROR rustc_peek: bit not set
 

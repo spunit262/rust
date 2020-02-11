@@ -23,7 +23,7 @@ LL |     unsafe { rustc_peek(&x); }
    |              ^^^^^^^^^^^^^^
 
 error: rustc_peek: bit not set
-  --> $DIR/uninits-1.rs:44:14
+  --> $DIR/uninits-1.rs:39:14
    |
 LL |     unsafe { rustc_peek(&ret); }
    |              ^^^^^^^^^^^^^^^^

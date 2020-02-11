@@ -8,7 +8,7 @@ use std::mem::{drop, replace};
 struct S(i32);
 
 #[rustc_mir(rustc_peek_maybe_uninit,stop_after_dataflow)]
-fn foo(x: &mut S) {
+fn foo(x: S) {
     // `x` is initialized here, so maybe-uninit bit is 0.
 
     unsafe { rustc_peek(&x) }; //~ ERROR rustc_peek: bit not set
@@ -19,6 +19,6 @@ fn foo(x: &mut S) {
     unsafe { rustc_peek(&x) };
 }
 fn main() {
-    foo(&mut S(13));
-    foo(&mut S(13));
+    foo(S(13));
+    foo(S(13));
 }
