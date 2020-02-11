@@ -3,8 +3,10 @@ error[E0382]: use of moved value: `src`
    |
 LL |     let mut src = &mut node;
    |         ------- move occurs because `src` has type `&mut Node`, which does not implement the `Copy` trait
-LL |     {src};
-   |      --- value moved here
+LL |     || src;
+   |     -- --- variable moved due to use in closure
+   |     |
+   |     value moved into closure here
 LL |     src.next = None;
    |     ^^^^^^^^ value used here after move
 
@@ -13,8 +15,10 @@ error[E0382]: use of moved value: `src`
    |
 LL |     let mut src = &mut (22, 44);
    |         ------- move occurs because `src` has type `&mut (i32, i32)`, which does not implement the `Copy` trait
-LL |     {src};
-   |      --- value moved here
+LL |     || src;
+   |     -- --- variable moved due to use in closure
+   |     |
+   |     value moved into closure here
 LL |     src.0 = 66;
    |     ^^^^^^^^^^ value used here after move
 

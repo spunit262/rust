@@ -15,13 +15,13 @@
             target_arch = "mips",
             target_arch = "mips64"))]
 mod test_cases {
-    fn is_move() {
+    fn is_reborrow() {
         let y: &mut isize;
         let x = &mut 0isize;
         unsafe {
-            asm!("nop" : : "r"(x));
+            asm!("nop" : : "r"(x)); // Ok, reborrow
         }
-        let z = x;  //~ ERROR use of moved value: `x`
+        let z = x;
     }
 
     fn in_is_read() {
@@ -73,7 +73,8 @@ mod test_cases {
     fn two_moves() {
         let x = &mut 2;
         unsafe {
-            asm!("nop" : : "r"(x), "r"(x) );    //~ ERROR use of moved value
+            asm!("nop" : : "r"(x), "r"(x) );
+            //~^ ERROR cannot borrow `*x` as mutable more than once at a time
         }
     }
 }

@@ -10,13 +10,13 @@ fn a() {
     };
 
     let mut src = &mut node;
-    {src};
+    || src;
     src.next = None; //~ ERROR use of moved value: `src` [E0382]
 }
 
 fn b() {
     let mut src = &mut (22, 44);
-    {src};
+    || src;
     src.0 = 66; //~ ERROR use of moved value: `src` [E0382]
 }
 
