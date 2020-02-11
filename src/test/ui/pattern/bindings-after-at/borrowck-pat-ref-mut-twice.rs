@@ -69,14 +69,11 @@ fn main() {
     let mut val = (U, [U, U]);
     let a @ (b, [c, d]) = &mut val; // Same as ^--
     //~^ ERROR borrow of moved value
-    //~| ERROR borrow of moved value
 
     let a @ &mut ref mut b = &mut U;
     //~^ ERROR borrow of moved value
-    //~| ERROR borrow of moved value
     let a @ &mut (ref mut b, ref mut c) = &mut (U, U);
     //~^ ERROR borrow of moved value
-    //~| ERROR borrow of moved value
 
     match Ok(U) {
         ref mut a @ Ok(ref mut b) | ref mut a @ Err(ref mut b) => {
