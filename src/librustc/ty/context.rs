@@ -1684,6 +1684,7 @@ pub mod tls {
 
     /// Gets the pointer to the current `ImplicitCtxt`.
     #[cfg(not(parallel_compiler))]
+    #[inline]
     fn get_tlv() -> usize {
         TLV.with(|tlv| tlv.get())
     }
