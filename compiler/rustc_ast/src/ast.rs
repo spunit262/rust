@@ -1611,6 +1611,7 @@ pub struct QSelf {
     /// 0`, this is an empty span.
     pub path_span: Span,
     pub position: usize,
+    pub bare_underscore: bool,
 }
 
 /// A capture clause used in closures and `async` blocks.

@@ -478,7 +478,20 @@ impl<'a> Parser<'a> {
             PatKind::Never
         } else if self.eat_keyword(kw::Underscore) {
             // Parse `_`
-            PatKind::Wild
+            let qspan = self.prev_token.span;
+            let qself = Some(P(QSelf {
+                ty: self.mk_ty(qspan, ast::TyKind::Infer),
+                path_span: qspan,
+                position: 0,
+                bare_underscore: true,
+            }));
+            if self.eat_noexpect(&token::PathSep) {
+                let path = self.parse_path(PathStyle::Pat)?;
+                self.psess.gated_spans.gate(sym::inferred_types, qspan);
+                self.finish_parse_path_pat(qself, path, qspan)?
+            } else {
+                PatKind::Wild
+            }
         } else if self.eat_keyword(kw::Mut) {
             self.parse_pat_ident_mut()?
         } else if self.eat_keyword(kw::Ref) {
@@ -527,22 +540,7 @@ impl<'a> Parser<'a> {
                 (None, self.parse_path(PathStyle::Pat)?)
             };
             let span = lo.to(self.prev_token.span);
-
-            if qself.is_none() && self.check(&token::Not) {
-                self.parse_pat_mac_invoc(path)?
-            } else if let Some(form) = self.parse_range_end() {
-                let begin = self.mk_expr(span, ExprKind::Path(qself, path));
-                self.parse_pat_range_begin_with(begin, form)?
-            } else if self.check(&token::OpenDelim(Delimiter::Brace)) {
-                self.parse_pat_struct(qself, path)?
-            } else if self.check(&token::OpenDelim(Delimiter::Parenthesis)) {
-                self.parse_pat_tuple_struct(qself, path)?
-            } else {
-                match self.maybe_recover_trailing_expr(span, false) {
-                    Some(guar) => PatKind::Err(guar),
-                    None => PatKind::Path(qself, path),
-                }
-            }
+            self.finish_parse_path_pat(qself, path, span)?
         } else if let Some(lt) = self.token.lifetime()
             // In pattern position, we're totally fine with using "next token isn't colon"
             // as a heuristic. We could probably just always try to recover if it's a lifetime,
@@ -1022,6 +1020,29 @@ impl<'a> Parser<'a> {
         || self.token.is_ident() && !self.token.is_bool_lit() && !self.token.is_keyword(kw::In)
     }
 
+    fn finish_parse_path_pat(
+        &mut self,
+        qself: Option<P<QSelf>>,
+        path: Path,
+        span: Span,
+    ) -> PResult<'a, PatKind> {
+        if qself.is_none() && self.check(&token::Not) {
+            self.parse_pat_mac_invoc(path)
+        } else if let Some(form) = self.parse_range_end() {
+            let begin = self.mk_expr(span, ExprKind::Path(qself, path));
+            self.parse_pat_range_begin_with(begin, form)
+        } else if self.check(&token::OpenDelim(Delimiter::Brace)) {
+            self.parse_pat_struct(qself, path)
+        } else if self.check(&token::OpenDelim(Delimiter::Parenthesis)) {
+            self.parse_pat_tuple_struct(qself, path)
+        } else {
+            match self.maybe_recover_trailing_expr(span, false) {
+                Some(guar) => Ok(PatKind::Err(guar)),
+                None => Ok(PatKind::Path(qself, path)),
+            }
+        }
+    }
+
     /// Would `parse_pat_ident` be appropriate here?
     fn can_be_ident_pat(&mut self) -> bool {
         self.check_ident()
@@ -1090,7 +1111,9 @@ impl<'a> Parser<'a> {
 
     /// Parse a struct ("record") pattern (e.g. `Foo { ... }` or `Foo::Bar { ... }`).
     fn parse_pat_struct(&mut self, qself: Option<P<QSelf>>, path: Path) -> PResult<'a, PatKind> {
-        if qself.is_some() {
+        if let Some(ref qself) = qself
+            && !qself.bare_underscore
+        {
             // Feature gate the use of qualified paths in patterns
             self.psess.gated_spans.gate(sym::more_qualified_paths, path.span);
         }
@@ -1120,7 +1143,9 @@ impl<'a> Parser<'a> {
                 CommaRecoveryMode::EitherTupleOrPipe,
             )
         })?;
-        if qself.is_some() {
+        if let Some(ref qself) = qself
+            && !qself.bare_underscore
+        {
             self.psess.gated_spans.gate(sym::more_qualified_paths, path.span);
         }
         Ok(PatKind::TupleStruct(qself, path, fields))

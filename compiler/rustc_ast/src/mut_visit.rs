@@ -570,7 +570,7 @@ fn walk_path<T: MutVisitor>(vis: &mut T, Path { segments, span, tokens }: &mut P
 
 fn walk_qself<T: MutVisitor>(vis: &mut T, qself: &mut Option<P<QSelf>>) {
     visit_opt(qself, |qself| {
-        let QSelf { ty, path_span, position: _ } = &mut **qself;
+        let QSelf { ty, path_span, position: _, bare_underscore: _ } = &mut **qself;
         vis.visit_ty(ty);
         vis.visit_span(path_span);
     })

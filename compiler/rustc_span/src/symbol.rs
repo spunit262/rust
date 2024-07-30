@@ -1032,6 +1032,7 @@ symbols! {
         index_mut,
         infer_outlives_requirements,
         infer_static_outlives_requirements,
+        inferred_types,
         inherent_associated_types,
         inherit,
         inlateout,

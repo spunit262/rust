@@ -1494,7 +1494,31 @@ impl<'a> Parser<'a> {
             } else if this.check_keyword(kw::Let) {
                 this.parse_expr_let(restrictions)
             } else if this.eat_keyword(kw::Underscore) {
-                Ok(this.mk_expr(this.prev_token.span, ExprKind::Underscore))
+                let qspan = this.prev_token.span;
+                let qself = Some(P(ast::QSelf {
+                    ty: this.mk_ty(qspan, TyKind::Infer),
+                    path_span: qspan,
+                    position: 0,
+                    bare_underscore: true,
+                }));
+                let mut is_path = false;
+                let mut path =
+                    Path { segments: ThinVec::new(), span: qspan.shrink_to_hi(), tokens: None };
+                if this.eat_noexpect(&token::PathSep) {
+                    is_path = true;
+                    this.psess.gated_spans.gate(sym::inferred_types, qspan);
+                    path = this.parse_path(PathStyle::Expr)?;
+                }
+                if this.check_noexpect(&token::OpenDelim(Delimiter::Brace))
+                    && is_path
+                    && let Some(expr) = this.maybe_parse_struct_expr(&qself, &path)
+                {
+                    expr
+                } else if is_path {
+                    Ok(this.mk_expr(path.span, ExprKind::Path(qself, path)))
+                } else {
+                    Ok(this.mk_expr(qspan, ExprKind::Underscore))
+                }
             } else if this.token.uninterpolated_span().at_least_rust_2018() {
                 // `Span::at_least_rust_2018()` is somewhat expensive; don't get it repeatedly.
                 if this.token.uninterpolated_span().at_least_rust_2024()
@@ -1622,7 +1646,9 @@ impl<'a> Parser<'a> {
         } else if self.check(&token::OpenDelim(Delimiter::Brace))
             && let Some(expr) = self.maybe_parse_struct_expr(&qself, &path)
         {
-            if qself.is_some() {
+            if let Some(ref qself) = qself
+                && !qself.bare_underscore
+            {
                 self.psess.gated_spans.gate(sym::more_qualified_paths, path.span);
             }
             return expr;

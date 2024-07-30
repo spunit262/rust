@@ -102,7 +102,8 @@ impl<'a> Parser<'a> {
             self.expect(&token::PathSep)?;
         }
 
-        let qself = P(QSelf { ty, path_span, position: path.segments.len() });
+        let qself =
+            P(QSelf { ty, path_span, position: path.segments.len(), bare_underscore: false });
         if !is_import_coupler {
             self.parse_path_segments(&mut path.segments, style, None)?;
         }

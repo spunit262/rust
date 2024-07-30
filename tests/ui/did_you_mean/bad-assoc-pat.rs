@@ -6,9 +6,6 @@ fn main() {
         (u8, u8)::AssocItem => {}
         //~^ ERROR missing angle brackets in associated item path
         //~| ERROR no associated item named `AssocItem` found
-        _::AssocItem => {}
-        //~^ ERROR missing angle brackets in associated item path
-        //~| ERROR no associated item named `AssocItem` found
     }
     match &0u8 {
         &(u8,)::AssocItem => {}

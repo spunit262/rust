@@ -1,0 +1,63 @@
+error[E0658]: paths starting with `_` are experimental
+  --> $DIR/feature-gate-inferred-types.rs:3:5
+   |
+LL |     _::A;
+   |     ^
+   |
+   = help: add `#![feature(inferred_types)]` to the crate attributes to enable
+   = note: this compiler was built on YYYY-MM-DD; consider upgrading it if it is out of date
+
+error[E0658]: paths starting with `_` are experimental
+  --> $DIR/feature-gate-inferred-types.rs:4:5
+   |
+LL |     _::A();
+   |     ^
+   |
+   = help: add `#![feature(inferred_types)]` to the crate attributes to enable
+   = note: this compiler was built on YYYY-MM-DD; consider upgrading it if it is out of date
+
+error[E0658]: paths starting with `_` are experimental
+  --> $DIR/feature-gate-inferred-types.rs:5:5
+   |
+LL |     _::A {};
+   |     ^
+   |
+   = help: add `#![feature(inferred_types)]` to the crate attributes to enable
+   = note: this compiler was built on YYYY-MM-DD; consider upgrading it if it is out of date
+
+error[E0658]: paths starting with `_` are experimental
+  --> $DIR/feature-gate-inferred-types.rs:7:9
+   |
+LL |         _::A => (),
+   |         ^
+   |
+   = help: add `#![feature(inferred_types)]` to the crate attributes to enable
+   = note: this compiler was built on YYYY-MM-DD; consider upgrading it if it is out of date
+
+error[E0658]: paths starting with `_` are experimental
+  --> $DIR/feature-gate-inferred-types.rs:8:9
+   |
+LL |         _::A() => (),
+   |         ^
+   |
+   = help: add `#![feature(inferred_types)]` to the crate attributes to enable
+   = note: this compiler was built on YYYY-MM-DD; consider upgrading it if it is out of date
+
+error[E0658]: paths starting with `_` are experimental
+  --> $DIR/feature-gate-inferred-types.rs:9:9
+   |
+LL |         _::A {} => (),
+   |         ^
+   |
+   = help: add `#![feature(inferred_types)]` to the crate attributes to enable
+   = note: this compiler was built on YYYY-MM-DD; consider upgrading it if it is out of date
+
+error: in expressions, `_` can only be used on the left-hand side of an assignment
+  --> $DIR/feature-gate-inferred-types.rs:15:5
+   |
+LL |     _();
+   |     ^ `_` not allowed here
+
+error: aborting due to 7 previous errors
+
+For more information about this error, try `rustc --explain E0658`.

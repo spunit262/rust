@@ -565,6 +565,7 @@ pub fn check_crate(krate: &ast::Crate, sess: &Session, features: &Features) {
         "`unsafe extern {}` blocks and `safe` keyword are experimental"
     );
     gate_all!(return_type_notation, "return type notation is experimental");
+    gate_all!(inferred_types, "paths starting with `_` are experimental");
 
     if !visitor.features.never_patterns {
         if let Some(spans) = spans.get(&sym::never_patterns) {

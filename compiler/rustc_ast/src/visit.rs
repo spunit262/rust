@@ -544,7 +544,7 @@ pub fn walk_ty<'a, V: Visitor<'a>>(visitor: &mut V, typ: &'a Ty) -> V::Result {
 
 fn walk_qself<'a, V: Visitor<'a>>(visitor: &mut V, qself: &'a Option<P<QSelf>>) -> V::Result {
     if let Some(qself) = qself {
-        let QSelf { ty, path_span: _, position: _ } = &**qself;
+        let QSelf { ty, path_span: _, position: _, bare_underscore: _ } = &**qself;
         try_visit!(visitor.visit_ty(ty));
     }
     V::Result::output()

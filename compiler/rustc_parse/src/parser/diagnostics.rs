@@ -1805,7 +1805,10 @@ impl<'a> Parser<'a> {
         });
 
         let path_span = ty_span.shrink_to_hi(); // Use an empty path since `position == 0`.
-        Ok(P(T::recovered(Some(P(QSelf { ty, path_span, position: 0 })), path)))
+        Ok(P(T::recovered(
+            Some(P(QSelf { ty, path_span, position: 0, bare_underscore: false })),
+            path,
+        )))
     }
 
     /// This function gets called in places where a semicolon is NOT expected and if there's a
