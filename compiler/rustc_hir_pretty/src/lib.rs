@@ -334,7 +334,7 @@ impl<'a> State<'a> {
                 self.word("/*ERROR*/");
                 self.pclose();
             }
-            hir::TyKind::Infer | hir::TyKind::InferDelegation(..) => {
+            hir::TyKind::Infer(_) | hir::TyKind::InferDelegation(..) => {
                 self.word("_");
             }
             hir::TyKind::AnonAdt(..) => self.word("/* anonymous adt */"),
@@ -1993,7 +1993,7 @@ impl<'a> State<'a> {
             s.ann.nested(s, Nested::BodyParamPat(body_id, i));
             i += 1;
 
-            if let hir::TyKind::Infer = ty.kind {
+            if let hir::TyKind::Infer(_) = ty.kind {
                 // Print nothing.
             } else {
                 s.word(":");

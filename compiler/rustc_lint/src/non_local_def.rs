@@ -447,7 +447,7 @@ fn ty_has_local_parent(
         | TyKind::AnonAdt(_)
         | TyKind::OpaqueDef(_, _, _)
         | TyKind::Typeof(_)
-        | TyKind::Infer
+        | TyKind::Infer(_)
         | TyKind::Err(_) => false,
     }
 }

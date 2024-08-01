@@ -1242,7 +1242,7 @@ impl<'a, 'hir> LoweringContext<'a, 'hir> {
 
     fn lower_ty_direct(&mut self, t: &Ty, itctx: ImplTraitContext) -> hir::Ty<'hir> {
         let kind = match &t.kind {
-            TyKind::Infer => hir::TyKind::Infer,
+            TyKind::Infer => hir::TyKind::Infer(hir::InferKind::Normal),
             TyKind::Err(guar) => hir::TyKind::Err(*guar),
             // Lower the anonymous structs or unions in a nested lowering context.
             //

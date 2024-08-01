@@ -33,7 +33,17 @@ impl<'a, 'hir> LoweringContext<'a, 'hir> {
         modifiers: Option<ast::TraitBoundModifiers>,
     ) -> hir::QPath<'hir> {
         let qself_position = qself.as_ref().map(|q| q.position);
-        let qself = qself.as_ref().map(|q| self.lower_ty(&q.ty, itctx));
+        let qself = qself.as_ref().map(|qself| -> &_ {
+            let mut ty = self.lower_ty_direct(&qself.ty, itctx);
+            if let hir::TyKind::Infer(ref mut ik) = ty.kind {
+                if qself.bare_underscore {
+                    *ik = hir::InferKind::PathRootBare;
+                } else {
+                    *ik = hir::InferKind::PathRootBracketed
+                }
+            }
+            self.arena.alloc(ty)
+        });
 
         let partial_res =
             self.resolver.get_partial_res(id).unwrap_or_else(|| PartialRes::new(Res::Err));

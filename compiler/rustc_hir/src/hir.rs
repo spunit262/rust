@@ -289,7 +289,7 @@ pub struct InferArg {
 
 impl InferArg {
     pub fn to_ty(&self) -> Ty<'static> {
-        Ty { kind: TyKind::Infer, span: self.span, hir_id: self.hir_id }
+        Ty { kind: TyKind::Infer(InferKind::Normal), span: self.span, hir_id: self.hir_id }
     }
 }
 
@@ -2603,7 +2603,7 @@ impl<'hir> Ty<'hir> {
         }
         debug!(?self);
         match &self.kind {
-            TyKind::Infer => true,
+            TyKind::Infer(_) => true,
             TyKind::Slice(ty) => ty.is_suggestable_infer_ty(),
             TyKind::Array(ty, length) => {
                 ty.is_suggestable_infer_ty() || matches!(length, ArrayLen::Infer(..))
@@ -2847,11 +2847,21 @@ pub enum TyKind<'hir> {
     Typeof(&'hir AnonConst),
     /// `TyKind::Infer` means the type should be inferred instead of it having been
     /// specified. This can appear anywhere in a type.
-    Infer,
+    Infer(InferKind),
     /// Placeholder for a type that has failed to be defined.
     Err(rustc_span::ErrorGuaranteed),
     /// Pattern types (`pattern_type!(u32 is 1..)`)
     Pat(&'hir Ty<'hir>, &'hir Pat<'hir>),
+}
+
+#[derive(Debug, Clone, Copy, HashStable_Generic)]
+pub enum InferKind {
+    /// A bare underscore at the start of a path `_::`
+    PathRootBare,
+    /// A bracketed lone underscore at the start of a path `<_>::`
+    PathRootBracketed,
+    /// Any other inferred type including `<_ as Trait>::`
+    Normal,
 }
 
 #[derive(Debug, Clone, Copy, HashStable_Generic)]

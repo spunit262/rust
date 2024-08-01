@@ -2132,11 +2132,17 @@ impl<'tcx> dyn HirTyLowerer<'tcx> + '_ {
                 Ty::new_array_with_const_len(tcx, self.lower_ty(ty), length)
             }
             hir::TyKind::Typeof(e) => tcx.type_of(e.def_id).instantiate_identity(),
-            hir::TyKind::Infer => {
+            hir::TyKind::Infer(hir::InferKind::Normal) => {
                 // Infer also appears as the type of arguments or return
                 // values in an ExprKind::Closure, or as
                 // the type of local variables. Both of these cases are
                 // handled specially and will not descend into this routine.
+                self.ty_infer(None, hir_ty.span)
+            }
+            hir::TyKind::Infer(hir::InferKind::PathRootBare) => {
+                self.ty_infer(None, hir_ty.span)
+            }
+            hir::TyKind::Infer(hir::InferKind::PathRootBracketed) => {
                 self.ty_infer(None, hir_ty.span)
             }
             hir::TyKind::Pat(ty, pat) => {
@@ -2279,7 +2285,7 @@ impl<'tcx> dyn HirTyLowerer<'tcx> + '_ {
 
     pub fn lower_arg_ty(&self, ty: &hir::Ty<'tcx>, expected_ty: Option<Ty<'tcx>>) -> Ty<'tcx> {
         match ty.kind {
-            hir::TyKind::Infer if let Some(expected_ty) = expected_ty => {
+            hir::TyKind::Infer(_) if let Some(expected_ty) = expected_ty => {
                 self.record_ty(ty.hir_id, expected_ty, ty.span);
                 expected_ty
             }

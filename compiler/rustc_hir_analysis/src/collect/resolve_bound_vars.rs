@@ -424,7 +424,7 @@ impl<'a, 'tcx> Visitor<'tcx> for BoundVarContext<'a, 'tcx> {
                     impl<'v> Visitor<'v> for FindInferInClosureWithBinder {
                         type Result = ControlFlow<Span>;
                         fn visit_ty(&mut self, t: &'v hir::Ty<'v>) -> Self::Result {
-                            if matches!(t.kind, hir::TyKind::Infer) {
+                            if matches!(t.kind, hir::TyKind::Infer(_)) {
                                 ControlFlow::Break(t.span)
                             } else {
                                 intravisit::walk_ty(self, t)

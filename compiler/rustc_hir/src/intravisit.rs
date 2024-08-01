@@ -909,7 +909,7 @@ pub fn walk_ty<'v, V: Visitor<'v>>(visitor: &mut V, typ: &'v Ty<'v>) -> V::Resul
             try_visit!(visitor.visit_lifetime(lifetime));
         }
         TyKind::Typeof(ref expression) => try_visit!(visitor.visit_anon_const(expression)),
-        TyKind::Infer | TyKind::InferDelegation(..) | TyKind::Err(_) => {}
+        TyKind::Infer(_) | TyKind::InferDelegation(..) | TyKind::Err(_) => {}
         TyKind::AnonAdt(item_id) => {
             try_visit!(visitor.visit_nested_item(item_id));
         }
