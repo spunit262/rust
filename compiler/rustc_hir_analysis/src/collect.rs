@@ -411,6 +411,10 @@ impl<'tcx> HirTyLowerer<'tcx> for ItemCtxt<'tcx> {
         Ty::new_error_with_message(self.tcx(), span, "bad placeholder type")
     }
 
+    fn inferred_type_path_root(&self, span: Span) -> Ty<'tcx> {
+        Ty::new_error_with_message(self.tcx(), span, "bad placeholder type")
+    }
+
     fn ct_infer(&self, _: Option<&ty::GenericParamDef>, span: Span) -> Const<'tcx> {
         ty::Const::new_error_with_message(self.tcx(), span, "bad placeholder constant")
     }

@@ -226,6 +226,7 @@ impl<'a, 'tcx> FnCtxt<'a, 'tcx> {
 
         let path_res = match &pat.kind {
             PatKind::Path(qpath) => {
+                self.set_inferred_type_path_root(expected);
                 Some(self.resolve_ty_and_res_fully_qualified_call(qpath, pat.hir_id, pat.span))
             }
             _ => None,
@@ -982,6 +983,7 @@ impl<'a, 'tcx> FnCtxt<'a, 'tcx> {
         expected: Ty<'tcx>,
         pat_info: PatInfo<'tcx, '_>,
     ) -> Ty<'tcx> {
+        self.set_inferred_type_path_root(expected);
         // Resolve the path and check the definition for errors.
         let (variant, pat_ty) = match self.check_struct_path(qpath, pat.hir_id) {
             Ok(data) => data,
@@ -1197,6 +1199,8 @@ impl<'a, 'tcx> FnCtxt<'a, 'tcx> {
             on_error(e);
             e
         };
+
+        self.set_inferred_type_path_root(expected);
 
         // Resolve the path and check the definition for errors.
         let (res, opt_ty, segments) =

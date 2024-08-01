@@ -114,6 +114,8 @@ pub(crate) struct FnCtxt<'a, 'tcx> {
 
     pub(super) diverging_fallback_behavior: DivergingFallbackBehavior,
     pub(super) diverging_block_behavior: DivergingBlockBehavior,
+
+    pub(super) inferred_type_path_root: Cell<Option<Ty<'tcx>>>,
 }
 
 impl<'a, 'tcx> FnCtxt<'a, 'tcx> {
@@ -141,6 +143,7 @@ impl<'a, 'tcx> FnCtxt<'a, 'tcx> {
             fallback_has_occurred: Cell::new(false),
             diverging_fallback_behavior,
             diverging_block_behavior,
+            inferred_type_path_root: Default::default(),
         }
     }
 
@@ -203,6 +206,19 @@ impl<'a, 'tcx> FnCtxt<'a, 'tcx> {
             }),
         }
     }
+
+    pub(super) fn set_inferred_type_path_root(&self, ty: Ty<'tcx>) {
+        self.inferred_type_path_root.set(Some(ty));
+    }
+
+    pub(super) fn set_inferred_type_path_root_expr(
+        &self,
+        _expr: &hir::Expr<'tcx>,
+        expected: crate::Expectation<'tcx>,
+    ) {
+        let opt_ty = expected.to_option(self);
+        self.inferred_type_path_root.set(opt_ty);
+    }
 }
 
 impl<'a, 'tcx> Deref for FnCtxt<'a, 'tcx> {
@@ -237,6 +253,20 @@ impl<'tcx> HirTyLowerer<'tcx> for FnCtxt<'_, 'tcx> {
         match param {
             Some(param) => self.var_for_def(span, param).as_type().unwrap(),
             None => self.next_ty_var(span),
+        }
+    }
+
+    fn inferred_type_path_root(&self, span: Span) -> Ty<'tcx> {
+        match self.inferred_type_path_root.take() {
+            Some(ty) => {
+                let ty = self.shallow_resolve(ty);
+                if ty.is_ty_or_numeric_infer() {
+                    Ty::new_error(self.tcx, self.dcx().span_err(span, "still has infer vars"))
+                } else {
+                    ty
+                }
+            }
+            None => Ty::new_error(self.tcx, self.dcx().span_err(span, "no root set")),
         }
     }
 

@@ -115,6 +115,8 @@ pub trait HirTyLowerer<'tcx> {
     /// Returns the type to use when a type is omitted.
     fn ty_infer(&self, param: Option<&ty::GenericParamDef>, span: Span) -> Ty<'tcx>;
 
+    fn inferred_type_path_root(&self, span: Span) -> Ty<'tcx>;
+
     /// Returns the const to use when a const is omitted.
     fn ct_infer(&self, param: Option<&ty::GenericParamDef>, span: Span) -> Const<'tcx>;
 
@@ -2140,7 +2142,7 @@ impl<'tcx> dyn HirTyLowerer<'tcx> + '_ {
                 self.ty_infer(None, hir_ty.span)
             }
             hir::TyKind::Infer(hir::InferKind::PathRootBare) => {
-                self.ty_infer(None, hir_ty.span)
+                self.inferred_type_path_root(hir_ty.span)
             }
             hir::TyKind::Infer(hir::InferKind::PathRootBracketed) => {
                 self.ty_infer(None, hir_ty.span)
